@@ -15,17 +15,15 @@ export function NewsItem({
   imagens,
   data_publicacao,
 }: NewsProps) {
-  const parsedImages = JSON.parse(imagens);
-
   const limitedTitle =
     titulo.length > 56 ? titulo.substring(0, 56) + "..." : titulo;
 
   return (
     <li className="flex max-h-96 w-60 flex-col gap-4 rounded-md bg-white p-4 shadow shadow-gray-400">
       <Link href={`/news-details/${id}`}>
-        {parsedImages.image_intro && (
+        {imagens && (
           <Image
-            src={`${API_URL}/${parsedImages.image_intro}`}
+            src={`${API_URL}/${JSON.parse(imagens).image_intro}`}
             alt={titulo}
             width={128}
             height={128}
