@@ -22,9 +22,6 @@ const newsFilterFormScheme = z.object({
 type NewsFilterFormInputs = z.infer<typeof newsFilterFormScheme>;
 
 export default function Home() {
-  const pageSize = 8;
-  const [page, setPage] = useState(1);
-
   const {
     register,
     handleSubmit,
@@ -40,54 +37,34 @@ export default function Home() {
     },
   });
 
+  const pageSize = 8;
+  const [page, setPage] = useState(1);
+
+  const {
+    data: newsData,
+    isLoading,
+    isError,
+  } = useQuery<NewsResponse>({
+    queryKey: ["news", page, pageSize],
+    queryFn: () =>
+      fetch(`${API_URL}?page=${page}&qtd=${pageSize}`).then((res) =>
+        res.json(),
+      ),
+  });
+
   async function handleNewsFilter(data: NewsFilterFormInputs) {
     console.log(data);
     reset();
   }
 
-  const { data, isLoading, isError } = useQuery<NewsResponse>({
-    queryKey: ["news", page, pageSize],
-    queryFn: () =>
-      fetch(`${API_URL}?page=${page}&?qtd=${pageSize}`).then((res) =>
-        res.json(),
-      ),
-  });
-
-  /* const { data, isLoading, isError } = useQuery<NewsResponse>({
-    queryKey: ["news", page, pageSize, search, startDate, endDate, type],
-    queryFn: () =>
-      fetch(
-        `${API_URL}?page=${page}&?qtd=${pageSize}&?busca=${search}&?de=${startDate}&?ate=${endDate}&?tipo=${type}`,
-      ).then((res) => res.json()),
-  }); */
-
-  /* const { data, isLoading, isError } = useQuery<NewsResponse>({
-    queryKey: ["news", page, pageSize, search, startDate, endDate, type],
-    queryFn: () =>
-      fetch(
-        `${API_URL}?page=${page}&?qtd=${pageSize}&?busca=${search}&?de=${startDate}&?ate=${endDate}&?tipo=${type}`,
-      ).then((res) => res.json()),
-  }); */
-
-  /* const fetchFilteredData = async (formData: NewsFilterFormInputs) => {
-    const { search, startDate, endDate, type } = formData;
-    const response = await fetch(
-      `${API_URL}?page=${page}&qtd=${pageSize}&busca=${search}&de=${startDate}&ate=${endDate}&tipo=${type}`,
-    );
-    if (!response.ok) {
-      throw new Error("Erro ao buscar dados filtrados");
-    }
-    return response.json();
-  }; */
-
   const handleNextPage = () => {
-    if (data?.nextPage !== null) {
+    if (newsData?.nextPage !== null) {
       setPage((prevPage) => prevPage + 1);
     }
   };
 
   const handlePrevPage = () => {
-    if (data?.previousPage !== null) {
+    if (newsData?.previousPage !== null) {
       setPage((prevPage) => prevPage - 1);
     }
   };
@@ -123,7 +100,7 @@ export default function Home() {
 
       <form
         onSubmit={handleSubmit(handleNewsFilter)}
-        className="mx-auto flex w-full max-w-[1040px]  items-start justify-center gap-4"
+        className="flex w-full   flex-col  items-center justify-center gap-4 sm:flex-row"
       >
         <Input
           label="Busca"
@@ -133,7 +110,7 @@ export default function Home() {
           placeholder="Termo de busca"
         />
 
-        <Input
+        {/* <Input
           label="De"
           id="startDate"
           register={register("startDate")}
@@ -147,7 +124,7 @@ export default function Home() {
           register={register("endDate")}
           type="date"
           placeholder="Até"
-        />
+        /> */}
 
         <div className="flex items-center justify-between gap-4">
           <label htmlFor="type" className="text-gray-800">
@@ -160,7 +137,7 @@ export default function Home() {
           >
             <option value="">Tipo</option>
             <option value="noticia">Notícia</option>
-            <option value="release">Release</option>
+            <option value="release">Lançamento</option>
           </select>
         </div>
 
@@ -175,8 +152,8 @@ export default function Home() {
 
       <div className="flex justify-center">
         <ul className="grid justify-center gap-4 p-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-          {Array.isArray(data?.items) &&
-            data.items.map((news) => <NewsItem key={news.id} {...news} />)}
+          {Array.isArray(newsData?.items) &&
+            newsData.items.map((news) => <NewsItem key={news.id} {...news} />)}
         </ul>
       </div>
 
@@ -190,12 +167,12 @@ export default function Home() {
         </button>
 
         <span>
-          Página {page} de {data?.totalPages || 1}
+          Página {page} de {newsData?.totalPages || 1}
         </span>
 
         <button
           onClick={handleNextPage}
-          disabled={!data?.nextPage}
+          disabled={!newsData?.nextPage}
           className="w-32 rounded bg-sky-700 px-4 py-2 text-white hover:bg-sky-600 disabled:cursor-not-allowed"
         >
           Próxima
